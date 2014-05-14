@@ -16,7 +16,7 @@ collector.register_application(application)
 collector.start()
 ```
 
-If you want to add your own metrics, you can do so by calling the .kv() or
-.count() methods on the collector object at any time.
+If you want to add your own metrics, you can do so by calling the `.kv()` or
+`.count()` methods on the collector object at any time.
 
 The HTTP endpoint is restricted to only respond to request from loopback.
