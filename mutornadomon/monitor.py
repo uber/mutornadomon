@@ -7,6 +7,7 @@ import tornado.ioloop
 import tornado.web
 import os
 import psutil
+import mock
 
 from . import net
 
@@ -54,9 +55,34 @@ class MuTornadoMon(object):
         self._host_limit = host_limit
         self.request_filter = request_filter
         self.callback = tornado.ioloop.PeriodicCallback(self.cb, CALLBACK_FREQUENCY, self.io_loop)
+        self._ioloop_exception_patch = None
+        self._monkey_patch_ioloop_exceptions()
         self._COUNTERS = collections.Counter()
         self._GAUGES = {}
         self._reset_ephemeral()
+
+    def _monkey_patch_ioloop_exceptions(self):
+        if self._ioloop_exception_patch is not None:
+            return
+
+        _original_handler = self.io_loop.handle_callback_exception
+
+        def handle_callback_exception(*args, **kwargs):
+            self.count('unhandled_exceptions', 1)
+            _original_handler(*args, **kwargs)
+
+        self._ioloop_exception_patch = mock.patch.object(
+            self.io_loop,
+            'handle_callback_exception',
+            handle_callback_exception
+        )
+        self._ioloop_exception_patch.start()
+
+    def _un_monkey_patch_ioloop_exceptions(self):
+        self._ioloop_exception_patch.stop()
+
+    def __del__(self):
+        self.stop()
 
     def _reset_ephemeral(self):
         """Reset ephemeral statistics.
@@ -86,6 +112,8 @@ class MuTornadoMon(object):
         if self.callback is not None:
             self.callback.stop()
             self.callback = None
+        if self._monkey_patched_ioloop_exceptions:
+            self._un_monkey_patch_ioloop_exceptions()
 
     def cb(self):
         now = time.time()

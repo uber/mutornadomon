@@ -1,0 +1,2 @@
+- probably multithreading / multiprocessing support or something
+- hook into RequestHandler to figure out how many requests are currently in-flight

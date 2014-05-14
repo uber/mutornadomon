@@ -7,9 +7,14 @@ import tornado.ioloop
 import mutornadomon
 
 
+def fail():
+    assert False, 'oops'
+
+
 class HeloHandler(tornado.web.RequestHandler):
     def get(self):
         self.write('HELO %s' % self.request.remote_ip)
+        tornado.ioloop.IOLoop.current().add_callback(fail)
 
 
 def main():
