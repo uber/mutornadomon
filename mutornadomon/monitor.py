@@ -78,9 +78,6 @@ class MuTornadoMon(object):
         )
         self._ioloop_exception_patch.start()
 
-    def _un_monkey_patch_ioloop_exceptions(self):
-        self._ioloop_exception_patch.stop()
-
     def __del__(self):
         self.stop()
 
@@ -118,8 +115,8 @@ class MuTornadoMon(object):
         if self.callback is not None:
             self.callback.stop()
             self.callback = None
-        if self._monkey_patched_ioloop_exceptions:
-            self._un_monkey_patch_ioloop_exceptions()
+        if self._ioloop_exception_patch is not None:
+            self._ioloop_exception_patch.stop()
 
     def _cb(self):
         now = time.time()
