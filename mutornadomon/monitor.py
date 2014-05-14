@@ -54,7 +54,7 @@ class MuTornadoMon(object):
         self.io_loop = io_loop
         self._host_limit = host_limit
         self.request_filter = request_filter
-        self.callback = tornado.ioloop.PeriodicCallback(self.cb, CALLBACK_FREQUENCY, self.io_loop)
+        self.callback = tornado.ioloop.PeriodicCallback(self._cb, CALLBACK_FREQUENCY, self.io_loop)
         self._ioloop_exception_patch = None
         self._monkey_patch_ioloop_exceptions()
         self._COUNTERS = collections.Counter()
@@ -95,9 +95,15 @@ class MuTornadoMon(object):
         self._MAX_GAUGES = {}
 
     def count(self, stat, value=1):
+        """Increment a counter by the given value"""
         self._COUNTERS[stat] += value
 
     def kv(self, stat, value):
+        """Set a gauge to the given stat and value.
+
+        The monitor also keeps track of the max and min value seen between subsequent calls
+        to the .metrics property.
+        """
         self._GAUGES[stat] = value
         if stat not in self._MAX_GAUGES or value > self._MAX_GAUGES[stat]:
             self._MAX_GAUGES[stat] = value
@@ -115,7 +121,7 @@ class MuTornadoMon(object):
         if self._monkey_patched_ioloop_exceptions:
             self._un_monkey_patch_ioloop_exceptions()
 
-    def cb(self):
+    def _cb(self):
         now = time.time()
         self.count('callbacks')
         latency = now - self._last_cb_time
@@ -129,7 +135,7 @@ class MuTornadoMon(object):
 
     @property
     def metrics(self):
-        """Return the current metrics. Resets max gauges"""
+        """Return the current metrics. Resets max gauges."""
         me = psutil.Process(os.getpid())
         meminfo = me.get_memory_info()
         cpuinfo = me.cpu_times()
@@ -155,7 +161,7 @@ class MuTornadoMon(object):
         return rv
 
     def register_application(self, app):
-        """Register an instance of tornado.web.Application to expose statistics on"""
+        """Register an instance of tornado.web.Application to expose statistics on."""
         app.add_handlers(self._host_limit, [
             (r'/mutornadomon', StatusHandler, {
                 'monitor': self,
@@ -174,4 +180,3 @@ class MuTornadoMon(object):
 
     def _instrument_app(self, app):
         app.add_transform(self._request)
-        pass
