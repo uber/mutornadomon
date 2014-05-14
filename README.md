@@ -1,4 +1,4 @@
-**mutornadomon** is a library designed to be used with Tornado web applications. It adds an endpoint
+**µtornadomon** is a library designed to be used with Tornado web applications. It adds an endpoint
 (`/mutornadomon`) to HTTP servers which outputs application statistics for use with standard metric
 collectors.
 
