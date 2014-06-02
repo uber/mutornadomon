@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from pip.req import parse_requirements
 
 
-def get_install_requirements():
+def get_install_requirements(filename):
 
     ReqOpts = collections.namedtuple('ReqOpts', [
         'skip_requirements_regex',
@@ -17,7 +17,7 @@ def get_install_requirements():
     requires = []
     dependency_links = []
 
-    for ir in parse_requirements('requirements.txt', options=opts):
+    for ir in parse_requirements(filename, options=opts):
         if ir is not None:
             if ir.url is not None:
                 dependency_links.append(str(ir.url))
@@ -26,7 +26,10 @@ def get_install_requirements():
     return requires, dependency_links
 
 
-install_requires, dependency_links = get_install_requirements()
+install_requires, dependency_links = get_install_requirements(
+    'requirements.txt')
+
+tests_require, _ = get_install_requirements('requirements-test.txt')
 
 
 def read_long_description(filename="README.md"):
@@ -36,7 +39,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1.4",
+    version="0.1.5",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
@@ -48,6 +51,7 @@ setup(
     dependency_links=dependency_links,
     long_description=read_long_description(),
     test_suite="nose.collector",
+    tests_require=tests_require,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",

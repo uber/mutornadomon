@@ -4,7 +4,7 @@ import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 
-import mutornadomon
+from mutornadomon.config import initialize_mutornadomon
 
 
 def fail():
@@ -24,9 +24,7 @@ def main():
     server = tornado.httpserver.HTTPServer(application)
     server.listen(8080, '127.0.0.1')
 
-    monitor = mutornadomon.MuTornadoMon()
-    monitor.register_application(application)
-    monitor.start()
+    monitor = initialize_mutornadomon(application)
 
     def stop(*args):
         print 'Good bye'

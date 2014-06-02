@@ -5,17 +5,13 @@ collectors.
 In general, to use it you do something like
 
 ```
-import mutornadomon
+from mutornadomon.config import initialize_mutornadomon
 import signal
 
 [...]
 
 application = tornado.web.Application(...)
-
-collector = mutornadomon.MuTornadoMon()
-collector.register_application(application)
-collector.start()
-
+collector = initialize_mutornadomon(application)
 
 def shut_down(*args):
     collector.stop()
