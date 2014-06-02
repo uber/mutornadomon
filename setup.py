@@ -36,7 +36,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1.3",
+    version="0.1.4",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
