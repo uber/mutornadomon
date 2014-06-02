@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from .monitor import MuTornadoMon  # noqa
 
-version_info = (0, 1, 1)
+version_info = (0, 1, 2)
 __name__ = 'MuTornadoMon'
 __author__ = 'jbrown@uber.com'
 __version__ = '.'.join(map(str, version_info))
