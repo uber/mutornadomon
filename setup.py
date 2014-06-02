@@ -7,7 +7,10 @@ from pip.req import parse_requirements
 
 def get_install_requirements():
 
-    ReqOpts = collections.namedtuple('ReqOpts', ['skip_requirements_regex', 'default_vcs'])
+    ReqOpts = collections.namedtuple('ReqOpts', [
+        'skip_requirements_regex',
+        'default_vcs'
+    ])
 
     opts = ReqOpts(None, 'git')
 
@@ -33,7 +36,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1",
+    version="0.1.1",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
