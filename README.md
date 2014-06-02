@@ -6,6 +6,7 @@ In general, to use it you do something like
 
 ```
 import mutornadomon
+import signal
 
 [...]
 
@@ -14,6 +15,15 @@ application = tornado.web.Application(...)
 collector = mutornadomon.MuTornadoMon()
 collector.register_application(application)
 collector.start()
+
+
+def shut_down(*args):
+    collector.stop()
+    some_other_application_stop_function()
+    tornado.ioloop.IOLoop.current().stop()
+
+for sig in (signal.SIGQUIT, signal.SIGINT, signal.SIGTERM):
+    signal.signal(sig, shut_down)
 ```
 
 If you want to add your own metrics, you can do so by calling the `.kv()` or
