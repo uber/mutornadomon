@@ -15,6 +15,7 @@ PRIVATE_NETS = [
 
 LOCAL_NETS = [
     ipcalc.Network('127.0.0.0/8'),     # local ipv4
+    ipcalc.Network('::1'),             # local ipv6
     ipcalc.Network('fc00::/7'),        # ula ipv6
     ipcalc.Network('fe80::/10'),       # link-local ipv6
 ]
