@@ -14,7 +14,13 @@ from . import net
 CALLBACK_FREQUENCY = 100  # ms
 
 
-LOCALHOST = lambda request: net.is_local_address(request.remote_ip)
+def LOCALHOST(request):
+    if not net.is_local_address(request.remote_ip):
+        return False
+    xff = request.headers.get('X-Forwarded-For', None)
+    if not xff or net.is_local_address(xff):
+        return True
+    return False
 
 
 class StatusHandler(tornado.web.RequestHandler):
@@ -135,10 +141,17 @@ class MuTornadoMon(object):
         """Return the current metrics. Resets max gauges."""
         me = psutil.Process(os.getpid())
         meminfo = me.get_memory_info()
-        cpuinfo = me.cpu_times()
+        if psutil.version_info < (2, 0, 0):
+            cpuinfo = me.get_cpu_times()
+            create_time = me.create_time
+            num_threads = me.get_num_threads()
+        else:
+            cpuinfo = me.cpu_times()
+            create_time = me.create_time()
+            num_threads = me.num_threads()
         rv = {
             'process': {
-                'uptime': time.time() - me.create_time(),
+                'uptime': time.time() - create_time,
                 'meminfo': {
                     'rss_bytes': meminfo.rss,
                     'vsz_bytes': meminfo.vms,
@@ -146,7 +159,7 @@ class MuTornadoMon(object):
                 'cpu': {
                     'user_time': cpuinfo.user,
                     'system_time': cpuinfo.system,
-                    'num_threads': me.num_threads(),
+                    'num_threads': num_threads,
                 }
             },
             'counters': dict(self._COUNTERS),
