@@ -37,7 +37,7 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
             {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}
         )
         self.assertEqual(resp['process']['cpu']['num_threads'], 1)
-        self.assertLess(resp['process']['cpu']['system_time'], 1)
+        assert resp['process']['cpu']['system_time'] < 1.0
 
     def test_endpoint_xff(self):
         resp = self.fetch('/mutornadomon', headers={'X-Forwarded-For': '127.0.0.2'})
