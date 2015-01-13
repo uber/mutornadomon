@@ -63,7 +63,10 @@ class MuTornadoMon(object):
         self.callback = tornado.ioloop.PeriodicCallback(self._cb, CALLBACK_FREQUENCY, self.io_loop)
         self._ioloop_exception_patch = None
         self._monkey_patch_ioloop_exceptions()
-        self._COUNTERS = collections.Counter()
+        if hasattr(collections, 'Counter'):
+            self._COUNTERS = collections.Counter()
+        else:
+            self._COUNTERS = collections.defaultdict(lambda: 0)
         self._GAUGES = {}
         self._reset_ephemeral()
 
