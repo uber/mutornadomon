@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import collections
+import sys
 
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
@@ -28,6 +29,11 @@ def get_install_requirements(filename):
 
 install_requires, dependency_links = get_install_requirements(
     'requirements.txt')
+
+if sys.version_info < (3, 0):
+    install_requires_2, dependency_links_2 = get_install_requirements('requirements-py2.txt')
+    install_requires += install_requires_2
+    dependency_links += dependency_links_2
 
 tests_require, _ = get_install_requirements('requirements-test.txt')
 

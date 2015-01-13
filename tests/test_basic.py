@@ -3,6 +3,8 @@ import json
 import tornado.testing
 from mutornadomon.config import initialize_mutornadomon
 
+from six import b
+
 
 class HeloHandler(tornado.web.RequestHandler):
     def get(self):
@@ -26,10 +28,10 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
 
     def test_endpoint(self):
         resp = self.fetch('/')
-        self.assertEqual(resp.body, 'HELO 127.0.0.1')
+        self.assertEqual(resp.body, b('HELO 127.0.0.1'))
         resp = self.fetch('/mutornadomon')
         self.assertEqual(resp.code, 200)
-        resp = json.load(resp.buffer)
+        resp = json.loads(resp.body.decode('utf-8'))
         self.assertEqual(
             resp['counters'],
             {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}

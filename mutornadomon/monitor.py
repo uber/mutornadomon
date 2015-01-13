@@ -123,6 +123,7 @@ class MuTornadoMon(object):
             self.callback = None
         if self._ioloop_exception_patch is not None:
             self._ioloop_exception_patch.stop()
+            self._ioloop_exception_patch = None
 
     def _cb(self):
         now = time.time()
