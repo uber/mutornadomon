@@ -149,10 +149,12 @@ class MuTornadoMon(object):
             cpuinfo = me.get_cpu_times()
             create_time = me.create_time
             num_threads = me.get_num_threads()
+            num_fds = me.get_num_fds()
         else:
             cpuinfo = me.cpu_times()
             create_time = me.create_time()
             num_threads = me.num_threads()
+            num_fds = me.num_fds()
         rv = {
             'process': {
                 'uptime': time.time() - create_time,
@@ -164,7 +166,8 @@ class MuTornadoMon(object):
                     'user_time': cpuinfo.user,
                     'system_time': cpuinfo.system,
                     'num_threads': num_threads,
-                }
+                },
+                'num_fds': num_fds
             },
             'counters': dict(self._COUNTERS),
             'gauges': self._GAUGES,
