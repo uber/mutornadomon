@@ -37,10 +37,10 @@ class StatusHandler(tornado.web.RequestHandler):
 
 
 class NullTransform(object):
-    def transform_first_chunk(self, status_code, headers, chunk, *args, **kargs):
+    def transform_first_chunk(self, status_code, headers, chunk, *args, **kwargs):
         return status_code, headers, chunk
 
-    def transform_chunk(self, chunk):
+    def transform_chunk(self, chunk, *args, **kwargs):
         return chunk
 
 
