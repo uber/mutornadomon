@@ -4,6 +4,7 @@ import sys
 
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
+from pip.download import PipSession
 
 
 def get_install_requirements(filename):
@@ -18,7 +19,7 @@ def get_install_requirements(filename):
     requires = []
     dependency_links = []
 
-    for ir in parse_requirements(filename, options=opts):
+    for ir in parse_requirements(filename, options=opts, session=PipSession()):
         if ir is not None:
             if ir.url is not None:
                 dependency_links.append(str(ir.url))
