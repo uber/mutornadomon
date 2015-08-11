@@ -1,41 +1,17 @@
 #!/usr/bin/env python
-import collections
+
 import sys
-
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
 
-
-def get_install_requirements(filename):
-
-    ReqOpts = collections.namedtuple('ReqOpts', [
-        'skip_requirements_regex',
-        'default_vcs'
-    ])
-
-    opts = ReqOpts(None, 'git')
-
-    requires = []
-    dependency_links = []
-
-    for ir in parse_requirements(filename, options=opts):
-        if ir is not None:
-            if ir.url is not None:
-                dependency_links.append(str(ir.url))
-            if ir.req is not None:
-                requires.append(str(ir.req))
-    return requires, dependency_links
-
-
-install_requires, dependency_links = get_install_requirements(
-    'requirements.txt')
+install_requires = [
+    'tornado',
+    'psutil',
+    'mock',
+    'six',
+]
 
 if sys.version_info < (3, 0):
-    install_requires_2, dependency_links_2 = get_install_requirements('requirements-py2.txt')
-    install_requires += install_requires_2
-    dependency_links += dependency_links_2
-
-tests_require, _ = get_install_requirements('requirements-test.txt')
+    install_requires.append('ipcalc')
 
 
 def read_long_description(filename="README.md"):
@@ -45,7 +21,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1.10",
+    version="0.1.11",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
@@ -54,10 +30,11 @@ setup(
     keywords=["monitoring", "tornado"],
     description="Library of standard monitoring hooks for the Tornado framework",
     install_requires=install_requires,
-    dependency_links=dependency_links,
     long_description=read_long_description(),
     test_suite="nose.collector",
-    tests_require=tests_require,
+    tests_require=[
+        'nose',
+    ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
