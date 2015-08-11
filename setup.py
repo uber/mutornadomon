@@ -1,29 +1,38 @@
 #!/usr/bin/env python
 import collections
+import pip
 import sys
 
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
 
 
 def get_install_requirements(filename):
+    ReqOpts = collections.namedtuple('ReqOpts', ['skip_requirements_regex',
+                                                 'default_vcs', 'isolated_mode'])
 
-    ReqOpts = collections.namedtuple('ReqOpts', [
-        'skip_requirements_regex',
-        'default_vcs'
-    ])
+    kwargs = {
+        'options': ReqOpts(None, 'git', False)
+    }
 
-    opts = ReqOpts(None, 'git')
+    if hasattr(pip.download, 'PipSession'):
+        kwargs['session'] = pip.download.PipSession()
 
     requires = []
     dependency_links = []
 
-    for ir in parse_requirements(filename, options=opts):
+    for ir in pip.req.parse_requirements(filename, **kwargs):
         if ir is not None:
-            if ir.url is not None:
-                dependency_links.append(str(ir.url))
+            if hasattr(ir, 'link'):
+                if ir.link is not None:
+                    dependency_links.append(str(ir.link))
+            else:
+                if ir.url is not None:
+                    dependency_links.append(str(ir.url))
+
             if ir.req is not None:
-                requires.append(str(ir.req))
+                req = str(ir.req)
+                requires.append(req)
+
     return requires, dependency_links
 
 
@@ -45,7 +54,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1.10",
+    version="0.1.11",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
