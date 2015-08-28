@@ -144,13 +144,17 @@ class MuTornadoMon(object):
     def metrics(self):
         """Return the current metrics. Resets max gauges."""
         me = psutil.Process(os.getpid())
-        meminfo = me.get_memory_info()
+
+        # Starting with 2.0.0, get_* methods are deprecated.
+        # At 3.1.1 they are dropped.
         if psutil.version_info < (2, 0, 0):
+            meminfo = me.get_memory_info()
             cpuinfo = me.get_cpu_times()
             create_time = me.create_time
             num_threads = me.get_num_threads()
             num_fds = me.get_num_fds()
         else:
+            meminfo = me.memory_info()
             cpuinfo = me.cpu_times()
             create_time = me.create_time()
             num_threads = me.num_threads()
