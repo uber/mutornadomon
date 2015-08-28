@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 install_requires = [
     'tornado',
     'psutil',
-    'mock',
+    'mock<1.3.0',
     'six',
 ]
 
@@ -21,7 +21,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.1.12",
+    version="0.1.13",
     author="James Brown",
     author_email="jbrown@uber.com",
     url="https://github.com/uber/mutornadomon",
