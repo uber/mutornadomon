@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/uber/mutornadomon.png)](https://travis-ci.org/uber/mutornadomon)
+[![Coverage Status](https://coveralls.io/repos/uber/mutornadomon/badge.svg?branch=master&service=github)](https://coveralls.io/github/uber/mutornadomon?branch=master)
 
 **µtornadomon** is a library designed to be used with Tornado web applications. It adds an endpoint
 (`/mutornadomon`) to HTTP servers which outputs application statistics for use with standard metric
