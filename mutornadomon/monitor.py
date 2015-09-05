@@ -12,6 +12,7 @@ import mock
 from . import net
 
 CALLBACK_FREQUENCY = 100  # ms
+PUBLISH_FREQUENCY = 10 * 1000  # ms
 
 
 def LOCALHOST(request):
@@ -45,22 +46,51 @@ class NullTransform(object):
 
 
 class MuTornadoMon(object):
-    def __init__(self, host_limit=r'.*', request_filter=LOCALHOST, io_loop=None):
+    def __init__(
+        self,
+        host_limit=r'.*',
+        request_filter=LOCALHOST,
+        io_loop=None,
+        publisher=None,
+        measure_interval=CALLBACK_FREQUENCY,
+        publish_interval=PUBLISH_FREQUENCY,
+    ):
         """Constructor for MuTornadoMon monitor
 
         :param host_limit: Regular expression of vhost to match, if you're
-           using Tornado's vhosting stuff
+           using Tornado's vhosting stuff.
+
         :param remote_client_filter: Function which, when called with the request
            will filter it. Defaults to a filter which only allows requests from
-           127.0.0.0/8
-        :param io_loop: IOLoop to run on if not using the standard singleton
+           127.0.0.0/8.
+
+        :param io_loop: IOLoop to run on if not using the standard singleton.
+
+        :param publisher:
+
+        :param measure_interval:
+
+        :param publish_interval:
         """
-        if io_loop is None:
-            io_loop = tornado.ioloop.IOLoop.current()
-        self.io_loop = io_loop
+        self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
         self._host_limit = host_limit
         self.request_filter = request_filter
-        self.callback = tornado.ioloop.PeriodicCallback(self._cb, CALLBACK_FREQUENCY, self.io_loop)
+
+        self.measure_callback = tornado.ioloop.PeriodicCallback(
+            self._cb,
+            measure_interval,
+            self.io_loop,
+        )
+
+        if callable(publisher):
+            self.publish_callback = tornado.ioloop.PeriodicCallback(
+                publisher,
+                publish_interval,
+                self.io_loop,
+            )
+        else:
+            self.publish_callback = None
+
         self._ioloop_exception_patch = None
         self._monkey_patch_ioloop_exceptions()
         if hasattr(collections, 'Counter'):
@@ -118,12 +148,17 @@ class MuTornadoMon(object):
 
     def start(self):
         self._last_cb_time = time.time()
-        self.callback.start()
+        self.measure_callback.start()
+        if self.publish_callback:
+            self.publish_callback.start()
 
     def stop(self):
-        if self.callback is not None:
-            self.callback.stop()
-            self.callback = None
+        if self.measure_callback is not None:
+            self.measure_callback.stop()
+            self.measure_callback = None
+        if self.publish_callback is not None:
+            self.publish_callback.stop()
+            self.publish_callback = None
         if self._ioloop_exception_patch is not None:
             self._ioloop_exception_patch.stop()
             self._ioloop_exception_patch = None
