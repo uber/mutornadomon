@@ -31,7 +31,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
     @mock.patch('tornado.ioloop.PeriodicCallback')
     def test_instrument_ioloop(self, periodic_callback_mock):
-        """Test initialize_mutornadomon() setups monitoring and shutdown"""
+        """Test instrument_ioloop() setups monitoring and creates a PeriodicCallback"""
 
         def publisher():
             pass
