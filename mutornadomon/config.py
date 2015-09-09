@@ -12,11 +12,7 @@ def initialize_mutornadomon(tornado_app, **monitor_config):
     return monitor
 
 
-def instrument_ioloop(
-        interval=10,
-        io_loop=None,
-        **monitor_config
-    ):
-    monitor = mutornadomon.MuTornadoMon(**monitor_config)
-    monitor.instrument_ioloop(io_loop)
+def instrument_ioloop(io_loop, publisher, **monitor_config):
+    monitor = mutornadomon.MuTornadoMon(io_loop=io_loop, publisher=publisher, **monitor_config)
     monitor.start()
+    return monitor

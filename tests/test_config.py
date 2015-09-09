@@ -2,9 +2,11 @@ from __future__ import absolute_import
 
 import mock
 from mock import sentinel
+import mutornadomon
+import tornado.ioloop
 import unittest
 
-from mutornadomon.config import initialize_mutornadomon
+from mutornadomon.config import initialize_mutornadomon, instrument_ioloop
 
 
 class TestInitializeMutornadomon(unittest.TestCase):
@@ -26,3 +28,16 @@ class TestInitializeMutornadomon(unittest.TestCase):
         # Monitor instance was registered with tornado application
         monitor_inst.register_application.assert_called_once_with(
             sentinel.application)
+
+    @mock.patch('tornado.ioloop.PeriodicCallback')
+    def test_instrument_ioloop(self, periodic_callback_mock):
+        """Test initialize_mutornadomon() setups monitoring and shutdown"""
+
+        def publisher():
+            pass
+
+        result = instrument_ioloop(tornado.ioloop.IOLoop.current(), publisher=publisher)
+
+        periodic_callback_mock.assert_called_once()
+
+        self.assertTrue(isinstance(result, mutornadomon.MuTornadoMon))

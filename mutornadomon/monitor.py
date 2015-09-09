@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import collections
+import logging
 import time
 
 import tornado.ioloop
@@ -46,6 +47,9 @@ class NullTransform(object):
 
 
 class MuTornadoMon(object):
+
+    logger = logging.getLogger('mutornadomon')
+
     def __init__(
         self,
         host_limit=r'.*',
@@ -66,11 +70,12 @@ class MuTornadoMon(object):
 
         :param io_loop: IOLoop to run on if not using the standard singleton.
 
-        :param publisher:
+        :param publisher: A callable that takes the current metrics dictionary as an arugment and
+        takes care of publishing them.
 
-        :param measure_interval:
+        :param measure_interval: The interval at which the latency of the ioloop is measured.
 
-        :param publish_interval:
+        :param publish_interval: The interval at which the publisher will be called periodically.
         """
         self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
         self._host_limit = host_limit
@@ -82,9 +87,11 @@ class MuTornadoMon(object):
             self.io_loop,
         )
 
+        self.publisher = publisher
+
         if callable(publisher):
             self.publish_callback = tornado.ioloop.PeriodicCallback(
-                publisher,
+                self._publish,
                 publish_interval,
                 self.io_loop,
             )
@@ -99,6 +106,12 @@ class MuTornadoMon(object):
             self._COUNTERS = collections.defaultdict(lambda: 0)
         self._GAUGES = {}
         self._reset_ephemeral()
+
+    def _publish(self):
+        try:
+            self.publisher(self.metrics)
+        except:
+            self.logger.exception('Metrics publisher raised an exception')
 
     def _monkey_patch_ioloop_exceptions(self):
         if self._ioloop_exception_patch is not None:
