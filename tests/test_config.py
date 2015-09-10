@@ -89,7 +89,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertTrue(isinstance(args[0], PublishExternalInterface))
 
         # No collectors are passed
-        self.assertEqual(kwargs.keys(), [])
+        self.assertEqual(kwargs, {})
 
     @mock.patch('tornado.ioloop.PeriodicCallback')
     def test_publisher_initializer(self, periodic_callback_mock):
