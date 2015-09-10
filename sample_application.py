@@ -6,7 +6,7 @@ import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 
-from mutornadomon.config import initialize_mutornadomon, instrument_ioloop
+from mutornadomon.config import initialize_mutornadomon
 
 
 def fail():
@@ -14,6 +14,7 @@ def fail():
 
 
 class HeloHandler(tornado.web.RequestHandler):
+
     def get(self):
         self.write('HELO %s' % self.request.remote_ip)
         tornado.ioloop.IOLoop.current().add_callback(fail)
@@ -24,8 +25,8 @@ def publisher(metrics):
     pprint.pprint(metrics)
 
 
-def main(active_publish=False):
-    ioloop = tornado.ioloop.IOLoop.current()
+def main(publish=False, no_app=False):
+    io_loop = tornado.ioloop.IOLoop.current()
 
     application = tornado.web.Application([
         (r'/', HeloHandler)
@@ -33,15 +34,23 @@ def main(active_publish=False):
     server = tornado.httpserver.HTTPServer(application)
     server.listen(8080, '127.0.0.1')
 
-    if active_publish:
-        monitor = instrument_ioloop(ioloop, publisher=publisher, publish_interval=1000)
+    if no_app:
+        tornado_app = None
     else:
-        monitor = initialize_mutornadomon(application)
+        tornado_app = application
+
+    if publish:
+        monitor = initialize_mutornadomon(tornado_app=tornado_app,
+                                          io_loop=io_loop,
+                                          publisher=publisher,
+                                          publish_interval=5 * 1000)
+    else:
+        monitor = initialize_mutornadomon(tornado_app=tornado_app)
 
     def stop(*args):
         print('Good bye')
         monitor.stop()
-        ioloop.stop()
+        io_loop.stop()
 
     for sig in signal.SIGINT, signal.SIGQUIT, signal.SIGTERM:
         signal.signal(sig, stop)
@@ -50,4 +59,5 @@ def main(active_publish=False):
 
 
 if __name__ == '__main__':
-    main(active_publish='--active-publish' in sys.argv)
+    main(publish='--publish' in sys.argv,
+         no_app='--no-app' in sys.argv)

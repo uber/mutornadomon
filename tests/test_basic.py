@@ -4,7 +4,7 @@ import mock
 import psutil
 from tornado.ioloop import IOLoop
 import tornado.testing
-from mutornadomon.config import initialize_mutornadomon, instrument_ioloop
+from mutornadomon.config import initialize_mutornadomon
 
 from six import b
 
@@ -58,9 +58,9 @@ class TestPublisher(tornado.testing.AsyncTestCase):
     def test_publisher_called(self, mock_num_threads):
         publisher = mock.Mock(return_value=None)
 
-        monitor = instrument_ioloop(IOLoop.current(), publisher)
+        monitor = initialize_mutornadomon(io_loop=IOLoop.current(), publisher=publisher)
         monitor.count('my_counter', 2)
-        monitor._publish()
+        monitor.external_interface._publish(monitor)
 
         self.assertTrue(publisher.called_once())
         metrics = publisher.call_args_list[0][0][0]
