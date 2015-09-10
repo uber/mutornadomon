@@ -107,5 +107,5 @@ class TestInitializeMutornadomon(unittest.TestCase):
     @mock.patch('tornado.ioloop.PeriodicCallback')
     def test_initialize_mutornadomon_raises_when_no_publisher_and_no_app(self, periodic_callback_mock):
         """Test instrument_ioloop() setups monitoring and creates a PeriodicCallback"""
-        with self.assertRaises(ValueError):
-            initialize_mutornadomon(io_loop=tornado.ioloop.IOLoop.current())
+        self.assertRaises(ValueError, initialize_mutornadomon,
+                          io_loop=tornado.ioloop.IOLoop.current())
