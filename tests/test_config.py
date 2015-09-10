@@ -33,7 +33,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertEquals(len(arg_list), 1)
         args, kwargs = arg_list[0]
         self.assertEqual(len(args), 1)
-        self.assertIsInstance(args[0], HTTPEndpointExternalInterface)
+        self.assertTrue(isinstance(args[0], HTTPEndpointExternalInterface))
 
         self.assertEqual(kwargs, {})
 
@@ -61,7 +61,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
         args, kwargs = arg_list[0]
         self.assertEqual(len(args), 1)
-        self.assertIsInstance(args[0], PublishExternalInterface)
+        self.assertTrue(isinstance(args[0], PublishExternalInterface))
 
         self.assertEqual(kwargs, {})
 
@@ -86,7 +86,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertEquals(len(arg_list), 1)
         args, kwargs = arg_list[0]
         self.assertEqual(len(args), 1)
-        self.assertIsInstance(args[0], PublishExternalInterface)
+        self.assertTrue(isinstance(args[0], PublishExternalInterface))
 
         # No collectors are passed
         self.assertEqual(kwargs.keys(), [])
