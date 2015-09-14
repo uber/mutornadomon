@@ -9,58 +9,47 @@ import os
 import psutil
 import mock
 
-from . import net
-
 CALLBACK_FREQUENCY = 100  # ms
 
 
-def LOCALHOST(request):
-    if not net.is_local_address(request.remote_ip):
-        return False
-    xff = request.headers.get('X-Forwarded-For', None)
-    if not xff or net.is_local_address(xff):
-        return True
-    return False
-
-
-class StatusHandler(tornado.web.RequestHandler):
-    def initialize(self, monitor, request_filter):
-        self.monitor = monitor
-        self.request_filter = request_filter
-
-    def prepare(self):
-        if not self.request_filter(self.request):
-            self.send_error(403)
-
-    def get(self):
-        self.write(self.monitor.metrics)
-
-
-class NullTransform(object):
-    def transform_first_chunk(self, status_code, headers, chunk, *args, **kwargs):
-        return status_code, headers, chunk
-
-    def transform_chunk(self, chunk, *args, **kwargs):
-        return chunk
-
-
 class MuTornadoMon(object):
-    def __init__(self, host_limit=r'.*', request_filter=LOCALHOST, io_loop=None):
+
+    def __init__(
+        self,
+        external_interface,
+        collectors=None,
+        io_loop=None,
+        measure_interval=CALLBACK_FREQUENCY,
+    ):
         """Constructor for MuTornadoMon monitor
 
         :param host_limit: Regular expression of vhost to match, if you're
-           using Tornado's vhosting stuff
+           using Tornado's vhosting stuff.
+
         :param remote_client_filter: Function which, when called with the request
            will filter it. Defaults to a filter which only allows requests from
-           127.0.0.0/8
-        :param io_loop: IOLoop to run on if not using the standard singleton
+           127.0.0.0/8.
+
+        :param io_loop: IOLoop to run on if not using the standard singleton.
+
+        :param external_interface:
+
+        :param measure_interval: The interval at which the latency of the ioloop is measured.
         """
-        if io_loop is None:
-            io_loop = tornado.ioloop.IOLoop.current()
-        self.io_loop = io_loop
-        self._host_limit = host_limit
-        self.request_filter = request_filter
-        self.callback = tornado.ioloop.PeriodicCallback(self._cb, CALLBACK_FREQUENCY, self.io_loop)
+        if collectors is None:
+            self.collectors = []
+        else:
+            self.collectors = collectors
+        self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
+
+        self.measure_callback = tornado.ioloop.PeriodicCallback(
+            self._cb,
+            measure_interval,
+            self.io_loop,
+        )
+
+        self.external_interface = external_interface
+
         self._ioloop_exception_patch = None
         self._monkey_patch_ioloop_exceptions()
         if hasattr(collections, 'Counter'):
@@ -117,13 +106,19 @@ class MuTornadoMon(object):
             self._MIN_GAUGES[stat] = value
 
     def start(self):
+        for collector in self.collectors:
+            collector.start(self)
+        self.external_interface.start(self)
         self._last_cb_time = time.time()
-        self.callback.start()
+        self.measure_callback.start()
 
     def stop(self):
-        if self.callback is not None:
-            self.callback.stop()
-            self.callback = None
+        self.external_interface.stop()
+        for collector in self.collectors:
+            collector.stop()
+        if self.measure_callback is not None:
+            self.measure_callback.stop()
+            self.measure_callback = None
         if self._ioloop_exception_patch is not None:
             self._ioloop_exception_patch.stop()
             self._ioloop_exception_patch = None
@@ -180,24 +175,3 @@ class MuTornadoMon(object):
         }
         self._reset_ephemeral()
         return rv
-
-    def register_application(self, app):
-        """Register an instance of tornado.web.Application to expose statistics on."""
-        app.add_handlers(self._host_limit, [
-            (r'/mutornadomon', StatusHandler, {
-                'monitor': self,
-                'request_filter': self.request_filter
-            })
-        ])
-        self._instrument_app(app)
-
-    def _request(self, request):
-        self.count('requests', 1)
-        if net.is_local_address(request.remote_ip):
-            self.count('localhost_requests', 1)
-        if net.is_private_address(request.remote_ip):
-            self.count('private_requests', 1)
-        return NullTransform()
-
-    def _instrument_app(self, app):
-        app.add_transform(self._request)

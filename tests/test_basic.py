@@ -1,5 +1,8 @@
 import json
 
+import mock
+import psutil
+from tornado.ioloop import IOLoop
 import tornado.testing
 from mutornadomon.config import initialize_mutornadomon
 
@@ -26,7 +29,8 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
         super(TestBasic, self).tearDown()
         self.monitor.stop()
 
-    def test_endpoint(self):
+    @mock.patch.object(psutil.Process, 'num_threads', autospec=True, return_value=5)
+    def test_endpoint(self, mock_num_threads):
         resp = self.fetch('/')
         self.assertEqual(resp.body, b('HELO 127.0.0.1'))
         resp = self.fetch('/mutornadomon')
@@ -36,7 +40,7 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
             resp['counters'],
             {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}
         )
-        self.assertEqual(resp['process']['cpu']['num_threads'], 1)
+        self.assertEqual(resp['process']['cpu']['num_threads'], 5)
         assert resp['process']['cpu']['system_time'] < 1.0
 
     def test_endpoint_xff(self):
@@ -46,3 +50,24 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
     def test_endpoint_not_public(self):
         resp = self.fetch('/mutornadomon', headers={'X-Forwarded-For': '8.8.8.8'})
         self.assertEqual(resp.code, 403)
+
+
+class TestPublisher(tornado.testing.AsyncTestCase):
+
+    @mock.patch.object(psutil.Process, 'num_threads', autospec=True, return_value=5)
+    def test_publisher_called(self, mock_num_threads):
+        publisher = mock.Mock(return_value=None)
+
+        monitor = initialize_mutornadomon(io_loop=IOLoop.current(), publisher=publisher)
+        monitor.count('my_counter', 2)
+        monitor.external_interface._publish(monitor)
+
+        self.assertTrue(publisher.called_once())
+        metrics = publisher.call_args_list[0][0][0]
+
+        self.assertEqual(
+            metrics['counters'],
+            {'my_counter': 2}
+        )
+        self.assertEqual(metrics['process']['cpu']['num_threads'], 5)
+        assert metrics['process']['cpu']['system_time'] < 1.0
