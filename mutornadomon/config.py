@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from functools import wraps
 
 from tornado.ioloop import IOLoop
 
@@ -32,12 +33,14 @@ def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=N
     utilization_stat = UtilizationCollector(monitor)
 
     def measure_callback(callback):
+        @wraps(callback)
         def timed_callback(*args, **kwargs):
             with utilization_stat:
                 return callback(*args, **kwargs)
 
         return timed_callback
 
+    @wraps(add_callback)
     def add_timed_callback(callback, *args, **kwargs):
         return add_callback(measure_callback(callback), *args, **kwargs)
 
