@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-from functools import wraps
 
-from tornado.ioloop import IOLoop
 
 from mutornadomon import MuTornadoMon
 from mutornadomon.external_interfaces.publish import PublishExternalInterface
@@ -28,26 +26,11 @@ def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=N
     monitor = MuTornadoMon(external_interface, **monitor_config)
     monitor.start()
 
-    ioloop = IOLoop.current()
-    add_callback = ioloop.add_callback
-    utilization_stat = UtilizationCollector(monitor)
-
-    def measure_callback(callback):
-        @wraps(callback)
-        def timed_callback(*args, **kwargs):
-            with utilization_stat:
-                return callback(*args, **kwargs)
-
-        return timed_callback
-
-    @wraps(add_callback)
-    def add_timed_callback(callback, *args, **kwargs):
-        return add_callback(measure_callback(callback), *args, **kwargs)
-
-    ioloop.add_callback = add_timed_callback
-
     if tornado_app:
         web_collector = WebCollector(monitor, tornado_app)
         web_collector.start()
+
+    utilization_collector = UtilizationCollector(monitor)
+    utilization_collector.start()
 
     return monitor
