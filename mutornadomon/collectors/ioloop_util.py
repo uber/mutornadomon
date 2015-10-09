@@ -1,13 +1,16 @@
 import time
 from functools import wraps
 
+import tornado
+
 
 class UtilizationCollector(object):
     """Collects stats for overall callback durations"""
 
-    def __init__(self, monitor):
+    def __init__(self, monitor, flush_interval):
         self.monitor = monitor
-        self.clear()
+        self.flush_interval = flush_interval
+        self._clear()
 
     def start(self):
         self.original_add_callback = self.monitor.io_loop.add_callback
@@ -34,9 +37,21 @@ class UtilizationCollector(object):
 
         self.monitor.io_loop.add_callback = add_timed_callback
 
+        self.flush_callback = tornado.ioloop.PeriodicCallback(
+            lambda: self._flush(),
+            self.flush_interval,
+            self.monitor.io_loop,
+        )
+
     def stop(self):
         self.monitor.add_callback = self.original_add_callback
+        self.flush_callback.stop()
+        self._flush()
 
-    def clear(self):
+    def _flush(self):
+        self.monitor.kv('callback_duration', self.total_duration)
+        self.clear()
+
+    def _clear(self):
         self.total_duration = 0
         self.callbacks = 0
