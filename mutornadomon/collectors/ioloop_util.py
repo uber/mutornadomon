@@ -9,7 +9,7 @@ class UtilizationCollector(object):
 
     def __init__(self, monitor, flush_interval):
         self.monitor = monitor
-        self.flush_interval = flush_interval
+        self.flush_interval = flush_interval or 10000
         self._clear()
 
     def start(self):
