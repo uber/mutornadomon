@@ -7,16 +7,24 @@ class UtilizationCollector(object):
 
     def __init__(self, monitor):
         self.monitor = monitor
+        self.clear()
 
     def start(self):
         self.original_add_callback = self.monitor.io_loop.add_callback
-        utilization_stat = ExecutionTimer(self.monitor)
 
         def measure_callback(callback):
             @wraps(callback)
             def timed_callback(*args, **kwargs):
-                with utilization_stat:
-                    return callback(*args, **kwargs)
+                self.last_start_time = time.time()
+                now = time.time()
+                self.last_start_time = now
+                result = callback(*args, **kwargs)
+                duration = (time.time() - self.last_start_time)
+                self.last_start_time = time.time()
+                self.total_duration += duration
+                self.callbacks += 1
+
+                return result
 
             return timed_callback
 
@@ -29,18 +37,6 @@ class UtilizationCollector(object):
     def stop(self):
         self.monitor.add_callback = self.original_add_callback
 
-
-class ExecutionTimer(object):
-    def __init__(self, monitor):
-        self.last_start_time = time.time()
-        self.monitor = monitor
-
-    def __enter__(self):
-        now = time.time()
-        self.last_start_time = now
-
-    def __exit__(self, *args, **kwargs):
-        duration = (time.time() - self.last_start_time)
-        self.last_start_time = time.time()
-        self.monitor.kv('callback_duration', duration)
-        self.monitor.count('accumulated_callback_duration', duration)
+    def clear(self):
+        self.total_duration = 0
+        self.callbacks = 0
