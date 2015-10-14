@@ -30,7 +30,7 @@ def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=N
         web_collector = WebCollector(monitor, tornado_app)
         web_collector.start()
 
-    utilization_collector = UtilizationCollector(monitor, publish_interval)
+    utilization_collector = UtilizationCollector(monitor)
     utilization_collector.start()
 
     return monitor

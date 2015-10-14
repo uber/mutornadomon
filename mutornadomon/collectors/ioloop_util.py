@@ -5,9 +5,8 @@ from functools import wraps
 class UtilizationCollector(object):
     """Collects stats for overall callback durations"""
 
-    def __init__(self, monitor, flush_interval):
+    def __init__(self, monitor):
         self.monitor = monitor
-        self.flush_interval = flush_interval or 10000
 
     def start(self):
         self.original_add_callback = self.monitor.io_loop.add_callback
