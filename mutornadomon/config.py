@@ -28,20 +28,16 @@ def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=N
     monitor.start()
 
     ioloop = IOLoop.current()
-    add_callback = ioloop.add_callback
+    run_callback = ioloop.run_callback
     utilization_stat = UtilizationCollector(monitor)
 
-    def measure_callback(callback):
-        def timed_callback(*args, **kwargs):
-            with utilization_stat:
-                return callback(*args, **kwargs)
+    def timed_run_calback(*args, **kwargs):
+        global stat
 
-        return timed_callback
+        with utilization_stat:
+            return run_callback(*args, **kwargs)
 
-    def add_timed_callback(callback, *args, **kwargs):
-        return add_callback(measure_callback(callback), *args, **kwargs)
-
-    ioloop.add_callback = add_timed_callback
+    ioloop.run_callback = timed_run_calback
 
     if tornado_app:
         web_collector = WebCollector(monitor, tornado_app)
