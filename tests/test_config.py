@@ -15,8 +15,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
     @mock.patch('mutornadomon.config.MuTornadoMon')
     @mock.patch('mutornadomon.config.WebCollector')
-    @mock.patch('mutornadomon.config.UtilizationCollector')
-    def test_initialize_mutornadmon(self, utilization_collector_mock, web_collector_mock, mutornadomon_mock):
+    def test_initialize_mutornadmon(self, web_collector_mock, mutornadomon_mock):
         """Test initialize_mutornadomon() sets up HTTP endpoints interface"""
         app = sentinel.application,
         result = initialize_mutornadomon(app, host_limit='test')
@@ -27,7 +26,6 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
         mutornadomon_mock.assert_called_once()
         web_collector_mock.assert_called_once_with(monitor_inst, app)
-        utilization_collector_mock.assert_called_once_with(monitor_inst)
 
         # MuTornadoMon was created with monitor config values
         arg_list = mutornadomon_mock.call_args_list
@@ -41,13 +39,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
     @mock.patch('mutornadomon.config.MuTornadoMon')
     @mock.patch('mutornadomon.config.WebCollector')
-    @mock.patch('mutornadomon.config.UtilizationCollector')
-    def test_initialize_mutornadmon_passes_publisher(
-        self,
-        utilization_collector_mock,
-        web_collector_mock,
-        mutornadomon_mock
-    ):
+    def test_initialize_mutornadmon_passes_publisher(self, web_collector_mock, mutornadomon_mock):
         """Test initialize_mutornadomon() sets up publishing interface"""
 
         def publisher(monitor):
@@ -63,7 +55,6 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertEqual(result, monitor_inst)
 
         web_collector_mock.assert_called_once_with(monitor_inst, app)
-        utilization_collector_mock.assert_called_once_with(monitor_inst)
 
         mutornadomon_mock.assert_called_once()
         arg_list = mutornadomon_mock.call_args_list
@@ -81,9 +72,8 @@ class TestInitializeMutornadomon(unittest.TestCase):
         def publisher(monitor):
             pass
 
-        monitor_inst = mutornadomon_mock.return_value
-        monitor_inst.io_loop.add_callback.__name__ = 'add_callback'
         result = initialize_mutornadomon(publisher=publisher)
+        monitor_inst = mutornadomon_mock.return_value
 
         # initialize_mutornadomon() should return the monitor instance
         self.assertEqual(result, monitor_inst)
