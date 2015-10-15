@@ -31,3 +31,4 @@ class UtilizationCollector(object):
 
     def stop(self):
         self.monitor.add_callback = self.original_add_callback
+        self.flush_callback.stop()
