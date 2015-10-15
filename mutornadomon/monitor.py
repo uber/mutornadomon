@@ -160,7 +160,7 @@ class MuTornadoMon(object):
             create_time = me.create_time()
             num_threads = me.num_threads()
             num_fds = me.num_fds()
-        for key, value in self._ACCUMULATED_GAUGES.items():
+        for key, value in self._ACCUMULATED_GAUGES.iteritems():
             self.kv(key, value)
         rv = {
             'process': {
