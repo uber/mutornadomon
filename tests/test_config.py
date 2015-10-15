@@ -27,7 +27,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
         mutornadomon_mock.assert_called_once()
         web_collector_mock.assert_called_once_with(monitor_inst, app)
-        utilization_collector_mock.assert_called_once_with(monitor_inst, None)
+        utilization_collector_mock.assert_called_once_with(monitor_inst)
 
         # MuTornadoMon was created with monitor config values
         arg_list = mutornadomon_mock.call_args_list
@@ -63,7 +63,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertEqual(result, monitor_inst)
 
         web_collector_mock.assert_called_once_with(monitor_inst, app)
-        utilization_collector_mock.assert_called_once_with(monitor_inst, None)
+        utilization_collector_mock.assert_called_once_with(monitor_inst)
 
         mutornadomon_mock.assert_called_once()
         arg_list = mutornadomon_mock.call_args_list
