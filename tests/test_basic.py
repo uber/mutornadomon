@@ -38,6 +38,7 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
         resp = json.loads(resp.body.decode('utf-8'))
         expected = {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}.items()
         self.assertTrue(all(pair in resp['counters'].items() for pair in expected))
+        self.assertTrue('accumulated_callback_duration' in resp['counters'])
         self.assertEqual(resp['process']['cpu']['num_threads'], 5)
         assert resp['process']['cpu']['system_time'] < 1.0
 
