@@ -88,6 +88,7 @@ class MuTornadoMon(object):
         """
         self._MIN_GAUGES = {}
         self._MAX_GAUGES = {}
+        self._ACCUMULATED_GAUGES = collections.defaultdict(float)
 
     def count(self, stat, value=1):
         """Increment a counter by the given value"""
@@ -104,6 +105,11 @@ class MuTornadoMon(object):
             self._MAX_GAUGES[stat] = value
         if stat not in self._MIN_GAUGES or value < self._MIN_GAUGES[stat]:
             self._MIN_GAUGES[stat] = value
+
+    def accumulated_kv(self, stat, value):
+        """Accumulate a value that will be flushed to a gauge when metrics is read"""
+
+        self._ACCUMULATED_GAUGES[stat] += value
 
     def start(self):
         for collector in self.collectors:
@@ -154,6 +160,8 @@ class MuTornadoMon(object):
             create_time = me.create_time()
             num_threads = me.num_threads()
             num_fds = me.num_fds()
+        for key, value in self._ACCUMULATED_GAUGES.items():
+            self.kv(key, value)
         rv = {
             'process': {
                 'uptime': time.time() - create_time,

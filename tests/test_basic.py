@@ -36,10 +36,8 @@ class TestBasic(tornado.testing.AsyncHTTPTestCase):
         resp = self.fetch('/mutornadomon')
         self.assertEqual(resp.code, 200)
         resp = json.loads(resp.body.decode('utf-8'))
-        self.assertEqual(
-            resp['counters'],
-            {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}
-        )
+        expected = {'requests': 2, 'localhost_requests': 2, 'private_requests': 2}.items()
+        self.assertTrue(all(pair in resp['counters'].items() for pair in expected))
         self.assertEqual(resp['process']['cpu']['num_threads'], 5)
         assert resp['process']['cpu']['system_time'] < 1.0
 

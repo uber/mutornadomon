@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
+
 from mutornadomon import MuTornadoMon
 from mutornadomon.external_interfaces.publish import PublishExternalInterface
 from mutornadomon.external_interfaces.http_endpoints import HTTPEndpointExternalInterface
 from mutornadomon.collectors.web import WebCollector
+from mutornadomon.collectors.ioloop_util import UtilizationCollector
 
 
 def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=None,
@@ -27,5 +29,8 @@ def initialize_mutornadomon(tornado_app=None, publisher=None, publish_interval=N
     if tornado_app:
         web_collector = WebCollector(monitor, tornado_app)
         web_collector.start()
+
+    utilization_collector = UtilizationCollector(monitor)
+    utilization_collector.start()
 
     return monitor
