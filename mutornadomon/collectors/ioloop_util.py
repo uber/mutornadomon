@@ -8,23 +8,31 @@ class UtilizationCollector(object):
         self.monitor = monitor
 
     def start(self):
-        self.original_add_callback = self.monitor.io_loop.add_callback
+        self.original_run_callback = self.monitor.io_loop._run_callback
+        self.original_add_handler = self.monitor.io_loop.add_handler
 
-        def measure_callback(callback):
-            def timed_callback(*args, **kwargs):
-                last_start_time = time.time()
-                result = callback(*args, **kwargs)
-                duration = (time.time() - last_start_time)
+        def run_timed_callback(callback):
+            last_start_time = time.time()
+            result = self.original_run_callback(callback)
+            duration = (time.time() - last_start_time)
+            self.monitor.kv('callback_duration', duration)
+
+            return result
+
+        def add_timed_handler(fd, handler, events):
+            def timed_handler(*args, **kwargs):
+                start_time = time.time()
+                result = handler(*args, **kwargs)
+                duration = (time.time() - start_time)
                 self.monitor.kv('callback_duration', duration)
 
                 return result
 
-            return timed_callback
+            self.original_add_handler(fd, timed_handler, events)
 
-        def add_timed_callback(callback, *args, **kwargs):
-            return self.original_add_callback(measure_callback(callback), *args, **kwargs)
-
-        self.monitor.io_loop.add_callback = add_timed_callback
+        self.monitor.io_loop.add_handler = add_timed_handler
+        self.monitor.io_loop._run_callback = run_timed_callback
 
     def stop(self):
-        self.monitor.add_callback = self.original_add_callback
+        self.monitor.io_loop._run_callback = self.original_run_callback
+        self.monitor.io_loop.add_handler = self.original_add_handler
