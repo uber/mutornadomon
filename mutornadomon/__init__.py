@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from .monitor import MuTornadoMon  # noqa
 from .config import initialize_mutornadomon  # noqa
 
-version_info = (0, 3, 1)
+version_info = (0, 3, 2)
 __name__ = 'MuTornadoMon'
 __author__ = 'jbrown@uber.com'
 __version__ = '.'.join(map(str, version_info))
