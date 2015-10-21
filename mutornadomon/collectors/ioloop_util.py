@@ -15,7 +15,7 @@ class UtilizationCollector(object):
                 last_start_time = time.time()
                 result = callback(*args, **kwargs)
                 duration = (time.time() - last_start_time)
-                self.monitor.accumulated_kv('callback_duration', duration)
+                self.monitor.kv('callback_duration', duration)
 
                 return result
 
