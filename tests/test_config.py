@@ -25,7 +25,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         # initialize_mutornadomon() should return the monitor instance
         self.assertEqual(result, monitor_inst)
 
-        mutornadomon_mock.assert_called_once()
+        assert mutornadomon_mock.call_count == 1
         web_collector_mock.assert_called_once_with(monitor_inst, app)
         utilization_collector_mock.assert_called_once_with(monitor_inst)
 
@@ -65,7 +65,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         web_collector_mock.assert_called_once_with(monitor_inst, app)
         utilization_collector_mock.assert_called_once_with(monitor_inst)
 
-        mutornadomon_mock.assert_called_once()
+        assert mutornadomon_mock.call_count == 1
         arg_list = mutornadomon_mock.call_args_list
 
         args, kwargs = arg_list[0]
@@ -87,7 +87,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         # initialize_mutornadomon() should return the monitor instance
         self.assertEqual(result, monitor_inst)
 
-        mutornadomon_mock.assert_called_once()
+        assert mutornadomon_mock.call_count == 1
 
         # MuTornadoMon was created with monitor config values
         arg_list = mutornadomon_mock.call_args_list
@@ -109,7 +109,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
         result = initialize_mutornadomon(io_loop=tornado.ioloop.IOLoop.current(), publisher=publisher)
 
-        periodic_callback_mock.assert_called_once()
+        assert periodic_callback_mock.called
 
         self.assertTrue(isinstance(result, mutornadomon.MuTornadoMon))
 
