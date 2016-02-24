@@ -1,4 +1,4 @@
 tornado>=3.0
 psutil>=1.2.0
-mock>=0.9,<=1.0.1
+mock>=0.9
 six
