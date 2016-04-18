@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import six
+
 try:
     import ipaddress
     Network = ipaddress.ip_network
@@ -44,7 +46,6 @@ def is_private_address(ip):
 
 def _convert_to_unicode(ip):
     """Converts given ip to unicode if its str type for python2."""
-    import six
     if six.PY2 and type(ip) == str:
         return six.u(ip)
     return ip
