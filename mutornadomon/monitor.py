@@ -127,7 +127,7 @@ class MuTornadoMon(object):
         now = time.time()
         self.count('callbacks')
         latency = now - self._last_cb_time
-        excess_latency = latency - (CALLBACK_FREQUENCY / 1000.0)
+        excess_latency = latency - (self.measure_interval / 1000.0)
         self._last_cb_time = now
         self.kv('ioloop_excess_callback_latency', excess_latency)
         if hasattr(self.io_loop, '_handlers'):
