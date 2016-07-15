@@ -42,6 +42,8 @@ class MuTornadoMon(object):
             self.collectors = collectors
         self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
 
+        self.measure_interval = measure_interval
+
         self.measure_callback = tornado.ioloop.PeriodicCallback(
             self._cb,
             measure_interval,
