@@ -6,6 +6,7 @@ import mutornadomon
 import tornado.ioloop
 import unittest
 
+from mutornadomon import MuTornadoMon
 from mutornadomon.config import initialize_mutornadomon
 from mutornadomon.external_interfaces import (HTTPEndpointExternalInterface,
                                               PublishExternalInterface)
@@ -118,3 +119,13 @@ class TestInitializeMutornadomon(unittest.TestCase):
         """Test instrument_ioloop() setups monitoring and creates a PeriodicCallback"""
         self.assertRaises(ValueError, initialize_mutornadomon,
                           io_loop=tornado.ioloop.IOLoop.current())
+
+    @mock.patch('mutornadomon.external_interfaces.PublishExternalInterface')
+    def test_initialize_MuTornadoMon(self, pub_ext_iface_mock):
+        external_interface = pub_ext_iface_mock.return_value
+        monitor = MuTornadoMon(external_interface)
+
+        #check if no exceptions are raised
+        monitor.start()
+        monitor._cb()
+        monitor.stop()
