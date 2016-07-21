@@ -5,9 +5,14 @@ import psutil
 from tornado.ioloop import IOLoop
 import tornado.testing
 from mutornadomon.config import initialize_mutornadomon
+from tornado.httpclient import AsyncHTTPClient
+import pstats, cProfile
 
 from six import b
-
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 class HeloHandler(tornado.web.RequestHandler):
     def get(self):
@@ -69,3 +74,32 @@ class TestPublisher(tornado.testing.AsyncTestCase):
         )
         self.assertEqual(metrics['process']['cpu']['num_threads'], 5)
         assert metrics['process']['cpu']['system_time'] < 1.0
+
+class TestTracer(tornado.testing.AsyncTestCase):
+
+    def setUp(self):
+        super(TestTracer, self).setUp()
+        self.publisher = mock.Mock(return_value=None)
+        self.io_loop = IOLoop.current()
+        self.monitor = initialize_mutornadomon(io_loop=self.io_loop, publisher=self.publisher, tracer_port=5989)
+
+    def tearDown(self):
+        super(TestTracer, self).tearDown()
+        self.monitor.stop()
+
+    @tornado.testing.gen_test
+    @mock.patch.object(psutil.Process, 'num_threads', autospec=True, return_value=5)
+    def test_tracer_endpoint(self, mock_num_threads):
+        client = AsyncHTTPClient(self.io_loop)
+        resp = yield client.fetch("http://localhost:5989")
+
+        trace_str = "Trace collected for"
+        self.assertTrue(trace_str in str(resp.body))
+
+    @tornado.testing.gen_test
+    def test_tracer_endpoint_params(self):
+        client = AsyncHTTPClient(self.io_loop)
+        trace_str = "Trace collected for"
+
+        resp = yield client.fetch("http://localhost:5989/?sortby=cumtime&&waittime=2000")
+        self.assertTrue(trace_str in str(resp.body), msg='{0}'.format(str(resp.body)))
