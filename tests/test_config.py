@@ -120,12 +120,49 @@ class TestInitializeMutornadomon(unittest.TestCase):
         self.assertRaises(ValueError, initialize_mutornadomon,
                           io_loop=tornado.ioloop.IOLoop.current())
 
+    @mock.patch('psutil.Process')
+    @mock.patch('os.getpid')
     @mock.patch('mutornadomon.external_interfaces.PublishExternalInterface')
-    def test_initialize_MuTornadoMon(self, pub_ext_iface_mock):
+    def test_MuTornadoMon(self, pub_ext_iface_mock, mock_os, mock_ps):
         external_interface = pub_ext_iface_mock.return_value
         monitor = MuTornadoMon(external_interface)
 
-        #check if no exceptions are raised
         monitor.start()
+
+        stat = 'test'
+        val = 2
+
+        # __COUNTERS[stat] = 2
+        monitor.count(stat, val)
+
+        # __COUNTERS[stat] = 3
+        monitor.count(stat)
+        self.assertEqual(monitor.metrics['counters'][stat], 3)
+
+
+        monitor.kv(stat, 1)
+        self.assertEqual(monitor.metrics['gauges'][stat], 1)
+
+        # To make sure no exceptions are thrown
         monitor._cb()
-        monitor.stop()
+        monitor._monkey_patch_ioloop_exceptions()
+
+        monitor.__del__()
+
+    @mock.patch('tornado.ioloop')
+    def test_initialize_PublishExternalInterface(self, mock_ioloop):
+
+        def publisher(monitor):
+            pass
+
+        pub_inst = PublishExternalInterface(publisher=publisher)
+        monitor = mock.MagicMock()
+        pub_inst.start(monitor)
+        self.assertTrue(pub_inst.publish_callback != None)
+
+        self.assertRaises(ValueError, pub_inst.start, monitor=monitor)
+
+        pub_inst._publish(monitor)
+
+        pub_inst.stop()
+        self.assertTrue(pub_inst.publish_callback == None)
