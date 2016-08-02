@@ -1,5 +1,6 @@
 import tornado
-import cProfile, pstats
+import cProfile
+import pstats
 import time
 from tornado import gen
 import logging
@@ -12,6 +13,7 @@ except ImportError:
 
 logger = logging.getLogger('mutornadomon')
 
+
 def LOCALHOST(request):
     if not net.is_local_address(request.remote_ip):
         return False
@@ -19,6 +21,7 @@ def LOCALHOST(request):
     if not xff or net.is_local_address(xff):
         return True
     return False
+
 
 class HTTPEndpointMuTornadoMonTracer(object):
     """Handles external HTTP requests for tracer"""
@@ -70,20 +73,25 @@ class TornadoStatsHandler(tornado.web.RequestHandler):
 
     @gen.coroutine
     def get(self):
+        valid_sortby = ['calls', 'cumulative', 'cumtime', 'file', 'filename', 'module',
+                        'ncalls', 'pcalls', 'line', 'name', 'nfl', 'stdname', 'time', 'tottime']
+
+        sortby = 'time'
+        wait_time = 3.0
+
         # Dictates how the stack trace is sorted
         if 'sortby' in self.request.arguments:
             sortby = self.request.arguments['sortby'][0]
-        else:
-            sortby = 'tottime'
+
+            if sortby not in valid_sortby:
+                sortby = 'time'
 
         # Wait time(msec) indicates for how long the trace is collected
         if 'waittime' in self.request.arguments:
             wait_time = float(self.request.arguments['waittime'][0])/1000
-        else:
-            wait_time = 3.0
 
         # If collecting trace is not started, start it
-        if self.monitor.stats_init == False:
+        if self.monitor.stats_init is False:
             self.write("Trace collected for " + str(wait_time * 1000) + " msec\n")
             self.monitor.stats_init = True
             self.monitor.profiler = cProfile.Profile()
@@ -95,8 +103,7 @@ class TornadoStatsHandler(tornado.web.RequestHandler):
         # Stats fails if there is no trace collected
         try:
             strm = StringIO()
-            ps = pstats.Stats(self.monitor.profiler,
-                                           stream=strm)
+            ps = pstats.Stats(self.monitor.profiler, stream=strm)
         except TypeError:
             self.write("No trace collected")
             return
@@ -143,5 +150,6 @@ class HTTPEndpointExternalInterface(object):
                 'request_filter': self.request_filter
             })
         ])
+
     def stop(self):
         pass
