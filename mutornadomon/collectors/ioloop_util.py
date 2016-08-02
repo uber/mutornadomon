@@ -1,5 +1,6 @@
 import time
 
+
 class UtilizationCollector(object):
     """Collects stats for overall callback durations"""
 
@@ -11,31 +12,39 @@ class UtilizationCollector(object):
         self.original_run_callback = self.monitor.io_loop._run_callback
         self.original_add_handler = self.monitor.io_loop.add_handler
 
-        def run_timed_callback(callback):
-            last_start_time = time.time()
-            result = self.original_run_callback(callback)
-            duration = (time.time() - last_start_time)
+        def enable_profiler():
+            """Enables profiler if required & returns current time"""
+            profiler_enabled = False
+
+            if self.monitor.stats_init:
+                self.monitor.profiler.enable()
+                profiler_enabled = True
+
+            return profiler_enabled, time.time()
+
+        def disable_profiler(profiler_enabled, start_time):
+            """Disables profiler & updates callback duration"""
+            if profiler_enabled:
+                self.monitor.profiler.disable()
+
+            duration = (time.time() - start_time)
             self.monitor.count('callback_duration', duration)
+            self.monitor.count('callbacks_processed', 1)
+
+        def run_timed_callback(callback):
+
+            profiler_enabled, start_time = enable_profiler()
+            result = self.original_run_callback(callback)
+            disable_profiler(profiler_enabled, start_time)
 
             return result
 
         def add_timed_handler(fd, handler, events):
             def timed_handler(*args, **kwargs):
-                profiler_enabled = False
-                start_time = time.time()
 
-                if self.monitor.stats_init == True:
-                    self.monitor.profiler.enable()
-                    profiler_enabled = True
-
+                profiler_enabled, start_time = enable_profiler()
                 result = handler(*args, **kwargs)
-
-                if profiler_enabled == True:
-                    self.monitor.profiler.disable()
-                    profiler_enabled = False
-
-                duration = (time.time() - start_time)
-                self.monitor.count('callback_duration', duration)
+                disable_profiler(profiler_enabled, start_time)
 
                 return result
 
