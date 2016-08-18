@@ -6,45 +6,44 @@ class UtilizationCollector(object):
 
     def __init__(self, monitor):
         self.monitor = monitor
-        self.monitor.stats_init = False
+        self.monitor.profiler_init = False
+        self.monitor.profiler_running = False
+        self.monitor.profiler = None
 
     def start(self):
         self.original_run_callback = self.monitor.io_loop._run_callback
         self.original_add_handler = self.monitor.io_loop.add_handler
 
         def enable_profiler():
-            """Enables profiler if required & returns current time"""
-            profiler_enabled = False
-
-            if self.monitor.stats_init:
+            """Enables profiler if required"""
+            if not self.monitor.profiler_running:
                 self.monitor.profiler.enable()
-                profiler_enabled = True
+                self.monitor.profiler_running = True
 
-            return profiler_enabled, time.time()
-
-        def disable_profiler(profiler_enabled, start_time):
-            """Disables profiler & updates callback duration"""
-            if profiler_enabled:
-                self.monitor.profiler.disable()
-
+        def update_callback_stats(start_time):
+            """Update callback stats"""
             duration = (time.time() - start_time)
             self.monitor.count('callback_duration', duration)
             self.monitor.count('callbacks_processed', 1)
 
         def run_timed_callback(callback):
+            if self.monitor.profiler_init:
+                enable_profiler()
 
-            profiler_enabled, start_time = enable_profiler()
+            start_time = time.time()
             result = self.original_run_callback(callback)
-            disable_profiler(profiler_enabled, start_time)
+            update_callback_stats(start_time)
 
             return result
 
         def add_timed_handler(fd, handler, events):
             def timed_handler(*args, **kwargs):
+                if self.monitor.profiler_init:
+                    enable_profiler()
 
-                profiler_enabled, start_time = enable_profiler()
+                start_time = time.time()
                 result = handler(*args, **kwargs)
-                disable_profiler(profiler_enabled, start_time)
+                update_callback_stats(start_time)
 
                 return result
 
