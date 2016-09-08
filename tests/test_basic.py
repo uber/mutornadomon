@@ -6,12 +6,7 @@ from tornado.ioloop import IOLoop
 import tornado.testing
 from mutornadomon.config import initialize_mutornadomon
 from tornado.httpclient import AsyncHTTPClient
-
 from six import b
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 
 class HeloHandler(tornado.web.RequestHandler):
@@ -76,39 +71,54 @@ class TestPublisher(tornado.testing.AsyncTestCase):
         assert metrics['process']['cpu']['system_time'] < 1.0
 
 
-class TestTracer(tornado.testing.AsyncTestCase):
+class TestProfiler(tornado.testing.AsyncTestCase):
 
     def setUp(self):
-        super(TestTracer, self).setUp()
+        super(TestProfiler, self).setUp()
         self.publisher = mock.Mock(return_value=None)
         self.io_loop = IOLoop.current()
-        self.monitor = initialize_mutornadomon(io_loop=self.io_loop, publisher=self.publisher, tracer_port=5989)
+        self.monitor = initialize_mutornadomon(
+            io_loop=self.io_loop, publisher=self.publisher, tracer_port=5989)
 
     def tearDown(self):
-        super(TestTracer, self).tearDown()
+        super(TestProfiler, self).tearDown()
         self.monitor.stop()
 
     @tornado.testing.gen_test
-    @mock.patch.object(psutil.Process, 'num_threads', autospec=True, return_value=5)
-    def test_tracer_endpoint(self, mock_num_threads):
+    @mock.patch.object(psutil.Process, 'num_threads',
+                       autospec=True, return_value=5)
+    def test_profiler_endpoint(self, mock_num_threads):
         client = AsyncHTTPClient(self.io_loop)
-        resp = yield client.fetch("http://localhost:5989")
+        resp = yield client.fetch("http://localhost:5989/profiler")
 
-        trace_str = "Trace collected for"
-        self.assertTrue(trace_str in str(resp.body))
+        profile_str = "Profiling done for"
+        self.assertTrue(profile_str in str(resp.body))
 
     @tornado.testing.gen_test
-    def test_tracer_endpoint_params(self):
+    def test_profiler_endpoint_params(self):
         client = AsyncHTTPClient(self.io_loop)
-        trace_str = "Trace collected for"
+        resp = yield client.fetch(
+            "http://localhost:5989/profiler?sortby=cumulative&&profiletime=200")
 
-        resp = yield client.fetch("http://localhost:5989/?sortby=cumulative&&waittime=2000")
-        self.assertTrue(trace_str in str(resp.body), msg='{0}'.format(str(resp.body)))
+        profile_str = "Profiling done for"
+        self.assertTrue(profile_str in str(resp.body),
+                        msg='{0}'.format(str(resp.body)))
 
     @tornado.testing.gen_test
-    def test_tracer_endpoint_invalid_param(self):
+    def test_profiler_endpoint_invalid_param(self):
         client = AsyncHTTPClient(self.io_loop)
-        trace_str = "Trace collected for"
+        resp = yield client.fetch(
+            "http://localhost:5989/profiler?sortby=badparam&&profiletime=200")
 
-        resp = yield client.fetch("http://localhost:5989/?sortby=badparam&&waittime=2000")
-        self.assertTrue(trace_str in str(resp.body), msg='{0}'.format(str(resp.body)))
+        profile_str = "Profiling done for"
+        self.assertTrue(profile_str in str(resp.body),
+                        msg='{0}'.format(str(resp.body)))
+
+    @tornado.testing.gen_test
+    def test_profiler_endpoint_periodic(self):
+        client = AsyncHTTPClient(self.io_loop)
+        resp = yield client.fetch("http://localhost:5989/profiler?stopprofiler")
+
+        profile_str = "Stopped Profiling"
+        self.assertTrue(profile_str in str(resp.body),
+                        msg='{0}'.format(str(resp.body)))
