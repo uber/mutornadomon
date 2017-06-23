@@ -9,6 +9,8 @@ import os
 import psutil
 import mock
 
+from mutornadomon.patched_periodic_callback import PatchedPeriodicCallback
+
 CALLBACK_FREQUENCY = 100  # ms
 
 
@@ -44,7 +46,7 @@ class MuTornadoMon(object):
 
         self.measure_interval = measure_interval
 
-        self.measure_callback = tornado.ioloop.PeriodicCallback(
+        self.measure_callback = PatchedPeriodicCallback(
             self._cb,
             measure_interval,
             self.io_loop,

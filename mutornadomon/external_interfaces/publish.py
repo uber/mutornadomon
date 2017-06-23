@@ -1,6 +1,6 @@
 import logging
 
-import tornado
+from mutornadomon.patched_periodic_callback import PatchedPeriodicCallback
 
 
 class PublishExternalInterface(object):
@@ -18,7 +18,7 @@ class PublishExternalInterface(object):
         if self.publish_callback is not None:
             raise ValueError('Publish callback already started')
 
-        self.publish_callback = tornado.ioloop.PeriodicCallback(
+        self.publish_callback = PatchedPeriodicCallback(
             lambda: self._publish(monitor),
             self.publish_interval,
             monitor.io_loop,
