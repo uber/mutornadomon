@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-    'tornado',
+    'tornado<6',
     'psutil',
     'mock',
     'six',
