@@ -40,20 +40,19 @@ class MuTornadoMon(object):
             self.collectors = []
         else:
             self.collectors = collectors
-        self.io_loop = io_loop or tornado.ioloop.IOLoop.current()
+        self.io_loop = tornado.ioloop.IOLoop.current()
 
         self.measure_interval = measure_interval
 
         self.measure_callback = tornado.ioloop.PeriodicCallback(
             self._cb,
-            measure_interval,
-            self.io_loop,
+            measure_interval
         )
 
         self.external_interface = external_interface
 
         self._ioloop_exception_patch = None
-        self._monkey_patch_ioloop_exceptions()
+        # self._monkey_patch_ioloop_exceptions()
         if hasattr(collections, 'Counter'):
             self._COUNTERS = collections.Counter()
         else:
@@ -61,22 +60,7 @@ class MuTornadoMon(object):
         self._GAUGES = {}
         self._reset_ephemeral()
 
-    def _monkey_patch_ioloop_exceptions(self):
-        if self._ioloop_exception_patch is not None:
-            return
 
-        _original_handler = self.io_loop.handle_callback_exception
-
-        def handle_callback_exception(*args, **kwargs):
-            self.count('unhandled_exceptions', 1)
-            _original_handler(*args, **kwargs)
-
-        self._ioloop_exception_patch = mock.patch.object(
-            self.io_loop,
-            'handle_callback_exception',
-            handle_callback_exception
-        )
-        self._ioloop_exception_patch.start()
 
     def __del__(self):
         self.stop()
