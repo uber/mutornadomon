@@ -31,6 +31,7 @@ setup(
     description="Library of standard monitoring hooks for the Tornado framework",
     install_requires=install_requires,
     long_description=read_long_description(),
+    long_description_content_type='text/markdown',
     test_suite="nose.collector",
     tests_require=[
         'nose',
