@@ -30,7 +30,7 @@ class MuTornadoMon(object):
            will filter it. Defaults to a filter which only allows requests from
            127.0.0.0/8.
 
-        :param io_loop: IOLoop to run on if not using the standard singleton.
+        :param io_loop: IOLoop to run on if not using the standard singleton. NO LONGER USED
 
         :param external_interface:
 
@@ -52,15 +52,12 @@ class MuTornadoMon(object):
         self.external_interface = external_interface
 
         self._ioloop_exception_patch = None
-        # self._monkey_patch_ioloop_exceptions()
         if hasattr(collections, 'Counter'):
             self._COUNTERS = collections.Counter()
         else:
             self._COUNTERS = collections.defaultdict(lambda: 0)
         self._GAUGES = {}
         self._reset_ephemeral()
-
-
 
     def __del__(self):
         self.stop()
