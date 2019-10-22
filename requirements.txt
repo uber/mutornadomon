@@ -1,5 +1,4 @@
-tornado>=3.0
+tornado>=3.0,<6
 psutil>=1.2.0
-mock>=0.9
 six
 ipcalc

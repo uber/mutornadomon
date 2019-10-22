@@ -7,3 +7,5 @@ sdist/
 build/
 *.egg-info/
 *.egg_info/
+.idea
+.tox

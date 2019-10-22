@@ -145,7 +145,6 @@ class TestInitializeMutornadomon(unittest.TestCase):
 
         # To make sure no exceptions are thrown
         monitor._cb()
-        monitor._monkey_patch_ioloop_exceptions()
 
         monitor.__del__()
 

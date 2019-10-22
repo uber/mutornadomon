@@ -21,8 +21,7 @@ class PublishExternalInterface(object):
         self.publish_callback = tornado.ioloop.PeriodicCallback(
             lambda: self._publish(monitor),
             self.publish_interval,
-            monitor.io_loop,
-        )
+           )
         self.publish_callback.start()
 
     def stop(self):

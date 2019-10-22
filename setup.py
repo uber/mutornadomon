@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-    'tornado',
+    'tornado<6',
     'psutil',
     'mock',
     'six',
@@ -21,7 +21,7 @@ def read_long_description(filename="README.md"):
 
 setup(
     name="mutornadomon",
-    version="0.4.4",
+    version="0.5.0",
     author="Uber Technologies, Inc.",
     author_email="dev@uber.com",
     url="https://github.com/uber/mutornadomon",
@@ -39,10 +39,10 @@ setup(
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Intended Audience :: System Administrators",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
