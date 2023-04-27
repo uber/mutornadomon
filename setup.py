@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-    'tornado<6',
+    'tornado',
     'psutil',
     'mock',
     'six',
@@ -15,7 +15,7 @@ if sys.version_info < (3, 0):
 
 
 def read_long_description(filename="README.md"):
-    with open(filename) as f:
+    with open(filename, "r", encoding="utf-8") as f:
         return f.read().strip()
 
 
