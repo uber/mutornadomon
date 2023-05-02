@@ -15,7 +15,7 @@ if sys.version_info < (3, 0):
 
 
 def read_long_description(filename="README.md"):
-    with open(filename) as f:
+    with open(filename, "r", encoding="utf-8") as f:
         return f.read().strip()
 
 
