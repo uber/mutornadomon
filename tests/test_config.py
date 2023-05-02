@@ -33,7 +33,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         # MuTornadoMon was created with monitor config values
         arg_list = mutornadomon_mock.call_args_list
 
-        self.assertEquals(len(arg_list), 1)
+        self.assertEqual(len(arg_list), 1)
         args, kwargs = arg_list[0]
         self.assertEqual(len(args), 1)
         self.assertTrue(isinstance(args[0], HTTPEndpointExternalInterface))
@@ -93,7 +93,7 @@ class TestInitializeMutornadomon(unittest.TestCase):
         # MuTornadoMon was created with monitor config values
         arg_list = mutornadomon_mock.call_args_list
 
-        self.assertEquals(len(arg_list), 1)
+        self.assertEqual(len(arg_list), 1)
         args, kwargs = arg_list[0]
         self.assertEqual(len(args), 1)
         self.assertTrue(isinstance(args[0], PublishExternalInterface))
